@@ -1,60 +1,44 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Block } from './Block';
 import './index.scss';
+import Select from 'react-select';
+import MyComponent from './MyComponent';
 
 function App() {
   const [firstCurrency, setFirstCurrency] = useState('USD');
   const [secondCurrency, setSecondCurrency] = useState('EUR');
   const [thirdCurrency, setThirdCurrency] = useState('BYN');
+  const [fourthCurrency, setFourthCurrency] = useState('RUB');
   const [firstPrice, setFirstPrice] = useState(1);
   const [secondPrice, setSecondPrice] = useState(0);
   const [thirdPrice, setThirdPrice] = useState(0);
+  const [fourthPrice, setFourthPrice] = useState(0);
 
   const ratesRef = useRef({});
 
-  // const [state, setState] = useState({});
 
-  // const callBackendAPI = async () => {
-  //   const response = await fetch('http://localhost:5000/currencies');
-  //   response.json().then(response => {
-  //     console.log("Here", response.rates)
-  //   })
-  //   const body = await response.json();
-
-  //   if (response.status !== 200) {
-  //     throw Error(body.message)
-  //   }
-  //   return body;
-  // };
-  
-  // // получение GET маршрута с сервера Express, который соответствует GET из server.js 
-  // useEffect(() => {
-  //   callBackendAPI()
-  //     .then(res => {
-  //       ratesRef.current = res.rates;
-  //     })
-  //   .catch(err => console.log(err));
-  // }, [])
+  const callBackendAPI = async () => {
+    const response = await fetch('http://localhost:5000/currencies');
+    const body = await response.json();
+    if (response.status !== 200) {
+      throw Error(body.message)
+    }
+    return body;
+  };
 
   useEffect(() => {
-    fetch('http://localhost:5000/currencies')
-      .then((res) => {
-        res.json()
-      })
-      .then((json) => {
-        console.log(json.rates);
-        ratesRef.current = json.rates;
+    callBackendAPI()
+      .then(res => {
+        ratesRef.current = res.rates;
         onChangeFirstPrice(1);
       })
-      .catch((err) => {
-        console.warn(err);
-        alert('Не удалось получить информацию');
-      })
-  }, []);
+    .catch(err => console.log(err));
+  }, [])
 
+    
   const onChangeFirstPrice = (value) => {
-    const result1 = value / ratesRef.current[firstCurrency] * ratesRef.current[secondCurrency];
-    const result2 = value / ratesRef.current[firstCurrency] * ratesRef.current[thirdCurrency];
+    const result1 = ratesRef.current[secondCurrency] / ratesRef.current[firstCurrency] * value;
+    const result2 = ratesRef.current[thirdCurrency] / ratesRef.current[firstCurrency] * value;
     setSecondPrice(result1.toFixed(4));
     setThirdPrice(result2.toFixed(4));
     setFirstPrice(value);
@@ -88,6 +72,11 @@ function App() {
     onChangeThirdPrice(thirdPrice);
   }, [thirdCurrency]);
 
+  const showSelect = () => {
+    const div = document.querySelector('.select-opt')
+    div.style.display = div.style.display === 'none' ? 'block' : 'none'
+  }
+
   return (
     <div className="App">
       <Block
@@ -109,7 +98,12 @@ function App() {
         currency={thirdCurrency}
         onChangeCurrency={setThirdCurrency}
         onChangeValue={onChangeThirdPrice} />
-          <p className='text-under-input'>белорусский рубль</p>
+      <p className='text-under-input'>белорусский рубль</p>
+
+      <MyComponent />
+
+      <button onClick={showSelect}>Добавить валюту</button>
+      
     </div>
   );
 }
